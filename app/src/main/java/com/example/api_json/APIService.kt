@@ -6,6 +6,6 @@ import retrofit2.http.Url
 
 interface APIService {
     @GET
-    fun getpeopleforname (@Url url:String): Response<PersonResponse>
+  suspend  fun getpeopleforname (@Url url:String): Response<PersonResponse>
 
 }
