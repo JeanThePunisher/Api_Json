@@ -23,6 +23,9 @@ class PerAdapter:RecyclerView.Adapter<PerAdapter.PerViewHolder>() {
         val repo = repos[position]
         holder.itemView.idTextView.text = repo.id.toString()
         holder.itemView.nameTextView.text = repo.name
+        holder.itemView.nameTextView1.text = repo.email
+        holder.itemView.nameTextView2.text = repo.gender
+        holder.itemView.nameTextView3.text = repo.status
     }
 
     override fun getItemCount(): Int {
