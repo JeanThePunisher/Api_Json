@@ -1,11 +1,11 @@
 package com.example.api_json
 
-import retrofit2.Response
+import retrofit2.Call
 import retrofit2.http.GET
-import retrofit2.http.Url
+import retrofit2.http.Path
 
 interface APIService {
-    @GET
-  suspend  fun getpeopleforname (@Url url:String): Response<PersonResponse>
+    @GET ("public/{v1}/users")
+  fun getpeopleforname (@Path ("v1") v1: String?): Call<List<PersonResponse>>
 
 }

@@ -1,80 +1,49 @@
 package com.example.api_json
 
-import androidx.appcompat.app.AppCompatActivity
+
 import android.os.Bundle
-import android.widget.SearchView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.api_json.databinding.ActivityMainBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.android.synthetic.main.activity_main.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-private lateinit var binding:ActivityMainBinding
-private lateinit var adapter:PerAdapter
-private val personImages= mutableListOf<String>()
 
-class MainActivity : AppCompatActivity(), androidx.appcompat.widget.SearchView.OnQueryTextListener {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.svPersons.setOnQueryTextListener(this)
-        initRecyclerView()
-    }
+        setContentView(R.layout.activity_main)
 
-    private fun initRecyclerView() {
-        adapter = PerAdapter(personImages)
-        binding.ivperson.layoutManager = LinearLayoutManager(this)
-        binding.ivperson.adapter= adapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = PerAdapter()
 
-    }
-
-    private fun getRetrofit():Retrofit{
-        return Retrofit.Builder()
-            .baseUrl("https://gorest.co.in/public/v1/")
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://gorest.co.in/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-    }
+        val service = retrofit.create(APIService::class.java)
+        val repos=service.getpeopleforname("v2")
 
-    private fun searchByName(query:String)
-    {
-        CoroutineScope(Dispatchers.IO).launch {
-            val call=getRetrofit().create(APIService::class.java).getpeopleforname(url="$query/images")
-            val persons=call.body()
-            runOnUiThread {
-                if (call.isSuccessful)
-                {
-                    val images = persons?.images ?: emptyList()
-                    personImages.clear()
-                    personImages.addAll(images)
-                    adapter.notifyDataSetChanged()
-                }
-                else
-                {
-                    showError()
-                }
+        repos.enqueue(object : Callback<List<PersonResponse>>{
+            override fun onFailure(call: Call<List<PersonResponse>>, t: Throwable) {
+                call.cancel()
             }
 
-        }
+            override fun onResponse(call: Call<List<PersonResponse>>, response: Response<List<PersonResponse>>) {
+                if(response.isSuccessful) {
+                    response.body()?.let { repos ->
+                        (recyclerView.adapter as PerAdapter).setNameList(repos)
+                    }
+                } else {
+                    Toast.makeText(this@MainActivity, response.message(), Toast.LENGTH_LONG).show()
+                }
+            }
+    })
 
-    }
-    private fun showError()
-    {
-        Toast.makeText(this, "Ha ocurrido un error", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onQueryTextSubmit(query: String?): Boolean {
-        if(!query.isNullOrEmpty())
-        {
-            searchByName(query.toLowerCase())
-        }
-        return true
-    }
-
-    override fun onQueryTextChange(newText: String?): Boolean {
-        return true
-    }
 }
+}
+
